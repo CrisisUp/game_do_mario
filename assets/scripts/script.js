@@ -1,11 +1,9 @@
 /**
- * Configurações globais do jogo para evitar "Números Mágicos"
- * e facilitar o balanceamento da dificuldade.
+ * Configurações globais do jogo.
+ * Removi os thresholds fixos para usar detecção dinâmica via Bounding Box.
  */
 const GAME_SETTINGS = {
   JUMP_DURATION: 500,
-  COLLISION_PIPE_THRESHOLD: 120,
-  COLLISION_MARIO_THRESHOLD: 80,
   LOOP_INTERVAL: 10,
   INITIAL_PIPE_SPEED: 2.5,
   MIN_PIPE_SPEED: 0.6,
@@ -14,7 +12,7 @@ const GAME_SETTINGS = {
   GAME_OVER_MARIO_MARGIN: '50px'
 };
 
-/* Seletores do DOM agrupados para melhor organização */
+/* Seletores do DOM */
 const mario = document.querySelector(".mario");
 const pipe = document.querySelector(".pipe");
 const nuvens = document.querySelector(".cloud");
@@ -33,12 +31,8 @@ let isGameRunning = false;
 let gameLoop;
 
 /**
- * Encapsula a lógica de obtenção de propriedades computadas
+ * Atualiza a velocidade do cano dinamicamente
  */
-const getMarioBottom = () => {
-  return +window.getComputedStyle(mario).bottom.replace("px", "");
-};
-
 const updatePipeSpeed = () => {
   const newSpeed = Math.max(
     GAME_SETTINGS.MIN_PIPE_SPEED,
@@ -48,7 +42,7 @@ const updatePipeSpeed = () => {
 };
 
 /**
- * Executa a ação de pular do personagem
+ * Executa o pulo do Mario
  */
 const jump = () => {
   if (!isGameRunning || mario.classList.contains("jump")) return;
@@ -61,39 +55,53 @@ const jump = () => {
 };
 
 /**
- * Lógica principal de verificação de colisão e pontuação
+ * Lógica de detecção de colisão aprimorada (Bounding Box)
+ * Esta função verifica se as caixas visuais dos elementos se sobrepõem.
  */
-const runGameLoop = () => {
-  const pipePosition = pipe.offsetLeft;
-  const cloudPosition = nuvens.offsetLeft;
-  const marioPosition = getMarioBottom();
+const checkCollision = () => {
+  const marioRect = mario.getBoundingClientRect();
+  const pipeRect = pipe.getBoundingClientRect();
 
-  const isColliding =
-    pipePosition <= GAME_SETTINGS.COLLISION_PIPE_THRESHOLD &&
-    pipePosition > 0 &&
-    marioPosition < GAME_SETTINGS.COLLISION_MARIO_THRESHOLD;
+  // Margem de segurança para compensar transparências nas imagens
+  const buffer = 15;
 
-  if (isColliding) {
-    handleGameOver(pipePosition, marioPosition, cloudPosition);
-    return;
-  }
-
-  handleScore(pipePosition);
+  return (
+    marioRect.right - buffer > pipeRect.left &&
+    marioRect.left + buffer < pipeRect.right &&
+    marioRect.bottom - buffer > pipeRect.top &&
+    marioRect.top + buffer < pipeRect.bottom
+  );
 };
 
 /**
- * Gerencia o incremento da pontuação e dificuldade
+ * Lógica principal de execução do jogo
  */
-const handleScore = (pipePosition) => {
-  const hasPassedPipe = pipePosition < 0 && !pipePassed;
-  const isPipeResetting = pipePosition > GAME_SETTINGS.COLLISION_PIPE_THRESHOLD;
+const runGameLoop = () => {
+  if (checkCollision()) {
+    handleGameOver();
+    return;
+  }
 
-  if (hasPassedPipe) {
+  handleScore();
+};
+
+/**
+ * Gerencia a pontuação verificando a posição do cano em relação ao Mario
+ */
+const handleScore = () => {
+  const marioRect = mario.getBoundingClientRect();
+  const pipeRect = pipe.getBoundingClientRect();
+
+  // Se o cano passou completamente pela esquerda do Mario
+  if (pipeRect.right < marioRect.left && !pipePassed) {
     score++;
     realTimeScoreElement.innerHTML = score;
     pipePassed = true;
     updatePipeSpeed();
-  } else if (isPipeResetting) {
+  } 
+  
+  // Reseta o estado quando o cano reaparece à direita
+  if (pipeRect.left > marioRect.right) {
     pipePassed = false;
   }
 };
@@ -112,31 +120,35 @@ const startGame = () => {
 };
 
 /**
- * Finaliza a partida e congela os elementos na tela
+ * Finaliza a partida
  */
-const handleGameOver = (pipePosition, marioPosition, cloudPosition) => {
+const handleGameOver = () => {
   isGameRunning = false;
   clearInterval(gameLoop);
 
-  // Congela as animações e posições
-  stopElementAnimation(pipe, pipePosition, "left");
-  stopElementAnimation(mario, marioPosition, "bottom");
-  stopElementAnimation(nuvens, cloudPosition, "left");
+  // Captura as posições exatas no momento do impacto para congelar a tela
+  const pipeRect = pipe.getBoundingClientRect();
+  const marioRect = mario.getBoundingClientRect();
+  const cloudRect = nuvens.getBoundingClientRect();
+  const boardRect = gameBoard.getBoundingClientRect();
 
-  // Altera visual do Mario para Game Over
+  // Congela elementos
+  stopElementAt(pipe, pipeRect.left - boardRect.left, 'left');
+  stopElementAt(mario, boardRect.bottom - marioRect.bottom, 'bottom');
+  stopElementAt(nuvens, cloudRect.left - boardRect.left, 'left');
+
   mario.src = "./assets/imgs/game-over.png";
   mario.style.width = GAME_SETTINGS.GAME_OVER_MARIO_WIDTH;
   mario.style.marginLeft = GAME_SETTINGS.GAME_OVER_MARIO_MARGIN;
 
-  // Exibe placar final
   scoreBoard.style.display = "flex";
   finalScoreElement.innerHTML = score;
 };
 
 /**
- * Função utilitária para parar animações de elementos específicos
+ * Congela um elemento em uma posição específica
  */
-const stopElementAnimation = (element, position, property) => {
+const stopElementAt = (element, position, property) => {
   element.style.animation = "none";
   element.style[property] = `${position}px`;
 };
@@ -144,12 +156,24 @@ const stopElementAnimation = (element, position, property) => {
 /* Event Listeners */
 startButton.addEventListener("click", startGame);
 
-document.addEventListener("keydown", () => {
+document.addEventListener("keydown", (e) => {
+  // Evita scroll da página com a barra de espaço
+  if(e.code === 'Space') e.preventDefault();
+  
   if (!isGameRunning) {
     startGame();
-    return;
+  } else {
+    jump();
   }
-  jump();
+});
+
+// Suporte para cliques/toques na tela para pular
+gameBoard.addEventListener("touchstart", (e) => {
+  if (!isGameRunning) {
+    startGame();
+  } else {
+    jump();
+  }
 });
 
 resetButton.addEventListener("click", () => {
