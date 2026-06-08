@@ -1,3 +1,20 @@
+/**
+ * Configurações globais do jogo para evitar "Números Mágicos"
+ * e facilitar o balanceamento da dificuldade.
+ */
+const GAME_SETTINGS = {
+  JUMP_DURATION: 500,
+  COLLISION_PIPE_THRESHOLD: 120,
+  COLLISION_MARIO_THRESHOLD: 80,
+  LOOP_INTERVAL: 10,
+  INITIAL_PIPE_SPEED: 1.5,
+  MIN_PIPE_SPEED: 0.6,
+  SPEED_INCREMENT: 0.05,
+  GAME_OVER_MARIO_WIDTH: '75px',
+  GAME_OVER_MARIO_MARGIN: '50px'
+};
+
+/* Seletores do DOM agrupados para melhor organização */
 const mario = document.querySelector('.mario');
 const pipe = document.querySelector('.pipe');
 const nuvens = document.querySelector('.cloud');
@@ -9,11 +26,30 @@ const gameBoard = document.querySelector('.game-board');
 const startButton = document.getElementById('start-button');
 const resetButton = document.getElementById('reset');
 
+/* Estado do Jogo */
 let score = 0;
 let pipePassed = false;
 let isGameRunning = false;
 let gameLoop;
 
+/**
+ * Encapsula a lógica de obtenção de propriedades computadas
+ */
+const getMarioBottom = () => {
+  return +window.getComputedStyle(mario).bottom.replace('px', '');
+};
+
+const updatePipeSpeed = () => {
+  const newSpeed = Math.max(
+    GAME_SETTINGS.MIN_PIPE_SPEED, 
+    GAME_SETTINGS.INITIAL_PIPE_SPEED - (score * GAME_SETTINGS.SPEED_INCREMENT)
+  );
+  gameBoard.style.setProperty('--pipe-time', `${newSpeed}s`);
+};
+
+/**
+ * Executa a ação de pular do personagem
+ */
 const jump = () => {
   if (!isGameRunning || mario.classList.contains('jump')) return;
 
@@ -21,33 +57,50 @@ const jump = () => {
   
   setTimeout(() => {
     mario.classList.remove('jump');
-  }, 500);
+  }, GAME_SETTINGS.JUMP_DURATION);
 };
 
-const loop = () => {
-  const posicaoPipe = pipe.offsetLeft;
-  const posicaoNuvens = nuvens.offsetLeft;
-  const posicaoMario = +window.getComputedStyle(mario).bottom.replace('px', '');
+/**
+ * Lógica principal de verificação de colisão e pontuação
+ */
+const runGameLoop = () => {
+  const pipePosition = pipe.offsetLeft;
+  const cloudPosition = nuvens.offsetLeft;
+  const marioPosition = getMarioBottom();
 
-  // Colisão
-  if (posicaoPipe <= 120 && posicaoPipe > 0 && posicaoMario < 80) {
-    gameOver(posicaoPipe, posicaoMario, posicaoNuvens);
+  const isColliding = 
+    pipePosition <= GAME_SETTINGS.COLLISION_PIPE_THRESHOLD && 
+    pipePosition > 0 && 
+    marioPosition < GAME_SETTINGS.COLLISION_MARIO_THRESHOLD;
+
+  if (isColliding) {
+    handleGameOver(pipePosition, marioPosition, cloudPosition);
+    return;
   }
 
-  // Pontuação
-  if (posicaoPipe < 0 && !pipePassed) {
+  handleScore(pipePosition);
+};
+
+/**
+ * Gerencia o incremento da pontuação e dificuldade
+ */
+const handleScore = (pipePosition) => {
+  const hasPassedPipe = pipePosition < 0 && !pipePassed;
+  const isPipeResetting = pipePosition > GAME_SETTINGS.COLLISION_PIPE_THRESHOLD;
+
+  if (hasPassedPipe) {
     score++;
     realTimeScoreElement.innerHTML = score;
     pipePassed = true;
-
-    // Aumentar velocidade (dificuldade progressiva)
-    const newSpeed = Math.max(0.6, 1.5 - (score * 0.05));
-    gameBoard.style.setProperty('--pipe-time', `${newSpeed}s`);
-  } else if (posicaoPipe > 120) {
+    updatePipeSpeed();
+  } else if (isPipeResetting) {
     pipePassed = false;
   }
 };
 
+/**
+ * Inicia a partida
+ */
 const startGame = () => {
   if (isGameRunning) return;
   
@@ -55,38 +108,48 @@ const startGame = () => {
   startScreen.style.display = 'none';
   gameBoard.classList.add('playing');
   
-  gameLoop = setInterval(loop, 10);
+  gameLoop = setInterval(runGameLoop, GAME_SETTINGS.LOOP_INTERVAL);
 };
 
-const gameOver = (posicaoPipe, posicaoMario, posicaoNuvens) => {
+/**
+ * Finaliza a partida e congela os elementos na tela
+ */
+const handleGameOver = (pipePosition, marioPosition, cloudPosition) => {
   isGameRunning = false;
   clearInterval(gameLoop);
 
-  pipe.style.animation = 'none';
-  pipe.style.left = `${posicaoPipe}px`;
+  // Congela as animações e posições
+  stopElementAnimation(pipe, pipePosition, 'left');
+  stopElementAnimation(mario, marioPosition, 'bottom');
+  stopElementAnimation(nuvens, cloudPosition, 'left');
 
-  mario.style.animation = 'none';
-  mario.style.bottom = `${posicaoMario}px`;
+  // Altera visual do Mario para Game Over
   mario.src = "./assets/imgs/game-over.png";
-  mario.style.width = '75px';
-  mario.style.marginLeft = '50px';
+  mario.style.width = GAME_SETTINGS.GAME_OVER_MARIO_WIDTH;
+  mario.style.marginLeft = GAME_SETTINGS.GAME_OVER_MARIO_MARGIN;
 
-  nuvens.style.animation = 'none';
-  nuvens.style.left = `${posicaoNuvens}px`;
-
+  // Exibe placar final
   scoreBoard.style.display = 'flex';
   finalScoreElement.innerHTML = score;
 };
 
-// Event Listeners
+/**
+ * Função utilitária para parar animações de elementos específicos
+ */
+const stopElementAnimation = (element, position, property) => {
+  element.style.animation = 'none';
+  element.style[property] = `${position}px`;
+};
+
+/* Event Listeners */
 startButton.addEventListener('click', startGame);
 
-document.addEventListener('keydown', (event) => {
+document.addEventListener('keydown', () => {
   if (!isGameRunning) {
     startGame();
-  } else {
-    jump();
+    return;
   }
+  jump();
 });
 
 resetButton.addEventListener('click', () => {
