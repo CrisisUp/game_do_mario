@@ -1,51 +1,93 @@
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
+:root {
+  --primary-font: 'VT323', monospace;
+  
+  /* Colors */
+  --sky-top: #87ceeb;
+  --sky-bottom: #e0f6ff;
+  --ground-color: rgb(35, 160, 35);
+  --score-color: rgb(255, 51, 0);
+  --button-bg: rgb(15, 180, 0);
+  --modal-bg: #fbfbfb;
+  --modal-shadow: #0f0f0f83;
+  --white: #fff;
+
+  /* Sizes */
+  --game-board-width: 80%;
+  --game-board-height: 90vh;
+  --mario-width: 150px;
+  --pipe-width: 80px;
+  --cloud-width: 500px;
+  --jump-height: 200px;
+  --ground-border-width: 10px;
+
+  /* Score Board (Modal) */
+  --modal-width: 50vw;
+  --modal-height: 30vh;
+  --modal-padding: 40px;
+  --modal-radius: 20px;
+  --modal-top: 30vh;
+  --modal-gap: 40px;
+
+  /* Font Sizes */
+  --font-size-p: 20px;
+  --font-size-game-over: 40px;
+  --font-size-score: 60px;
+  --font-size-button: 30px;
+
+  /* Animation times */
+  --jump-time: 500ms;
+  --pipe-time: 2s;
+  --cloud-time: 10s;
+}
+
 *{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'VT323', monospace;
+  font-family: var(--primary-font);
 }
 
 .game-board{
-  width: 80%;
-  height: 90vh;
+  width: var(--game-board-width);
+  height: var(--game-board-height);
   margin: 0 auto;
   overflow: hidden;
   position: relative;
-  background: linear-gradient(#87ceeb, #e0f6ff);
-  border-bottom: 10px solid rgb(35, 160, 35);
+  background: linear-gradient(var(--sky-top), var(--sky-bottom));
+  border-bottom: var(--ground-border-width) solid var(--ground-color);
 }
 
 .mario{
   bottom: 0;
-  width: 150px;
+  width: var(--mario-width);
   position: absolute;
 }
 
 .mario.jump{
-  animation: jump 500ms infinite ease-out;
+  animation: jump var(--jump-time) infinite ease-out;
 }
 
 .pipe{
   bottom: 0;
-  width: 80px;
-  right: -80px;
+  width: var(--pipe-width);
+  right: calc(var(--pipe-width) * -1);
   position: absolute;
-  animation: pipe-animation 2s infinite linear;
+  animation: pipe-animation var(--pipe-time) infinite linear;
 }
 
 .cloud{
   top: 10%;
-  width: 500px;
-  right: -500px;
+  width: var(--cloud-width);
+  right: calc(var(--cloud-width) * -1);
   position: absolute;
-  animation: nuvens 10s infinite linear;
+  animation: nuvens var(--cloud-time) infinite linear;
 }
 
 @keyframes pipe-animation{
   from{
-    right: -500px;
+    right: calc(var(--cloud-width) * -1);
   }
 
   to{
@@ -59,15 +101,15 @@
   }
 
   40%{
-    bottom: 200px;
+    bottom: var(--jump-height);
   }
 
   50%{
-    bottom: 200px;
+    bottom: var(--jump-height);
   }
 
   60%{
-    bottom: 200px;
+    bottom: var(--jump-height);
   }
 
   100%{
@@ -77,7 +119,7 @@
 
 @keyframes nuvens{
   from{
-    right: -500px;
+    right: calc(var(--cloud-width) * -1);
   }
 
   to{
@@ -88,19 +130,19 @@
 .score-board{
   display: none;
 
-  width: 50vw;
-  height: 30vh;
-  padding: 40px;
-  border-radius: 20px;
-  background-color: #fbfbfb;
-  box-shadow: 0px 0px 20vw 100vw #0f0f0f83;
+  width: var(--modal-width);
+  height: var(--modal-height);
+  padding: var(--modal-padding);
+  border-radius: var(--modal-radius);
+  background-color: var(--modal-bg);
+  box-shadow: 0px 0px 20vw 100vw var(--modal-shadow);
 
-  top: 30vh;
-  left: 25vw;
-  right: 25vw;
+  top: var(--modal-top);
+  left: calc((100vw - var(--modal-width)) / 2);
+  right: calc((100vw - var(--modal-width)) / 2);
   position: fixed;
 
-  gap: 40px;
+  gap: var(--modal-gap);
   /* display: flex; */
   text-align: center;
   align-items: center;
@@ -108,23 +150,23 @@
 }
 
 p{
-  font-size: 20px;
+  font-size: var(--font-size-p);
 }
 
 .game-over{
-  font-size: 40px;
+  font-size: var(--font-size-game-over);
 }
 
 .pontuacao{
-  font-size: 60px;
-  color: rgb(255, 51, 0);
+  font-size: var(--font-size-score);
+  color: var(--score-color);
 }
 
 #reset{
-  color: #fff;
+  color: var(--white);
   cursor: pointer;
-  font-size: 30px;
+  font-size: var(--font-size-button);
   padding: 15px 40px;
   border-radius: 15px;
-  background-color: rgb(15, 180, 0);
+  background-color: var(--button-bg);
 }
