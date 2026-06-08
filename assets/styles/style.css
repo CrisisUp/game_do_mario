@@ -1,28 +1,30 @@
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+/* Importação da fonte estilo Pixel para combinar com o tema do Mario */
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
 
+/* Definição de variáveis globais para facilitar a manutenção e reutilização de estilos */
 :root {
-  --primary-font: 'VT323', monospace;
-  
-  /* Colors */
-  --sky-top: #87ceeb;
-  --sky-bottom: #e0f6ff;
-  --ground-color: rgb(35, 160, 35);
-  --score-color: rgb(255, 51, 0);
-  --button-bg: rgb(15, 180, 0);
-  --modal-bg: #fbfbfb;
-  --modal-shadow: #0f0f0f83;
+  --primary-font: "VT323", monospace;
+
+  /* Cores do Ambiente e Interface */
+  --sky-top: #87ceeb; /* Azul claro do topo do céu */
+  --sky-bottom: #e0f6ff; /* Azul quase branco do horizonte */
+  --ground-color: rgb(35, 160, 35); /* Verde da grama/chão */
+  --score-color: rgb(255, 51, 0); /* Cor de destaque para a pontuação */
+  --button-bg: rgb(15, 180, 0); /* Cor de fundo dos botões */
+  --modal-bg: #fbfbfb; /* Fundo das janelas modais */
+  --modal-shadow: #0f0f0f83; /* Sombra escura para o fundo ao abrir modal */
   --white: #fff;
 
-  /* Sizes */
+  /* Dimensões dos Elementos do Jogo */
   --game-board-width: 80%;
   --game-board-height: 90vh;
   --mario-width: 150px;
   --pipe-width: 80px;
   --cloud-width: 500px;
-  --jump-height: 200px;
-  --ground-border-width: 10px;
+  --jump-height: 200px; /* Altura máxima do pulo */
+  --ground-border-width: 10px; /* Espessura da linha do chão */
 
-  /* Score Board (Modal) */
+  /* Configurações do Placar Final (Modal) */
   --modal-width: 50vw;
   --modal-height: 30vh;
   --modal-padding: 40px;
@@ -30,80 +32,89 @@
   --modal-top: 30vh;
   --modal-gap: 40px;
 
-  /* Font Sizes */
+  /* Tamanhos de Fonte */
   --font-size-p: 20px;
   --font-size-game-over: 40px;
   --font-size-score: 60px;
   --font-size-button: 30px;
 
-  /* Animation times */
+  /* Tempos de Animação (Podem ser alterados via JS) */
   --jump-time: 500ms;
-  --pipe-time: 1.5s; /* Um pouco mais rápido */
-  --cloud-time: 10s;
+  --pipe-time: 1.5s; /* Velocidade inicial do cano */
+  --cloud-time: 10s; /* Velocidade das nuvens ao fundo */
 }
 
-*{
+/* Reset básico para garantir consistência entre navegadores */
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: var(--primary-font);
 }
 
-.game-board{
+/* Container principal onde o jogo acontece */
+.game-board {
   width: var(--game-board-width);
   height: var(--game-board-height);
   margin: 0 auto;
-  overflow: hidden;
+  overflow: hidden; /* Esconde elementos que saem da área do jogo (como canos e nuvens) */
   position: relative;
   background: linear-gradient(var(--sky-top), var(--sky-bottom));
   border-bottom: var(--ground-border-width) solid var(--ground-color);
 }
 
+/* Placar que aparece durante a jogatina */
 .score-container {
   position: absolute;
   top: 20px;
   right: 20px;
   font-size: 30px;
   color: #333;
-  z-index: 10;
+  z-index: 10; /* Garante que fique acima das nuvens */
 }
 
-.mario{
+/* Personagem Mario */
+.mario {
   bottom: 0;
   width: var(--mario-width);
   position: absolute;
 }
 
-.mario.jump{
-  animation: jump var(--jump-time) ease-out; /* Removido infinite */
+/* Classe aplicada via JS para executar a animação de pulo */
+.mario.jump {
+  animation: jump var(--jump-time) ease-out;
 }
 
-.pipe{
+/* Obstáculo: Cano */
+.pipe {
   bottom: 0;
   width: var(--pipe-width);
-  right: calc(var(--pipe-width) * -1);
+  right: calc(var(--pipe-width) * -1); /* Começa fora da tela à direita */
   position: absolute;
 }
 
+/* Ativa a animação do cano apenas quando a classe 'playing' está no board */
 .game-board.playing .pipe {
   animation: pipe-animation var(--pipe-time) infinite linear;
 }
 
-.cloud{
+/* Elemento decorativo: Nuvens */
+.cloud {
   top: 10%;
   width: var(--cloud-width);
-  right: calc(var(--cloud-width) * -1);
+  right: calc(var(--cloud-width) * -1); /* Começa fora da tela à direita */
   position: absolute;
   animation: nuvens var(--cloud-time) infinite linear;
 }
 
+/* Overlay de início de jogo */
 .start-screen {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -122,6 +133,7 @@
   margin-bottom: 20px;
 }
 
+/* Botão de Início */
 #start-button {
   padding: 15px 40px;
   font-size: 30px;
@@ -134,60 +146,64 @@
 }
 
 #start-button:hover {
-  transform: scale(1.1);
+  transform: scale(1.1); /* Efeito de aumento ao passar o mouse */
 }
 
-@keyframes pipe-animation{
-  from{
+/* Animação que move o cano da direita para a esquerda */
+@keyframes pipe-animation {
+  from {
     right: calc(var(--pipe-width) * -1);
   }
 
-  to{
+  to {
     right: 100%;
   }
 }
 
-@keyframes jump{
-  0%{
+/* Animação de pulo do Mario */
+@keyframes jump {
+  0% {
     bottom: 0;
   }
 
-  40%{
+  40% {
     bottom: var(--jump-height);
   }
 
-  50%{
+  50% {
     bottom: var(--jump-height);
   }
 
-  60%{
+  60% {
     bottom: var(--jump-height);
   }
 
-  100%{
+  100% {
     bottom: 0;
   }
 }
 
-@keyframes nuvens{
-  from{
+/* Animação suave para as nuvens ao fundo */
+@keyframes nuvens {
+  from {
     right: calc(var(--cloud-width) * -1);
   }
 
-  to{
+  to {
     right: 100%;
   }
 }
 
-.score-board{
-  display: none;
+/* Modal de Game Over */
+.score-board {
+  display: none; /* Escondido por padrão, exibido via JS no Game Over */
 
   width: var(--modal-width);
   height: var(--modal-height);
   padding: var(--modal-padding);
   border-radius: var(--modal-radius);
   background-color: var(--modal-bg);
-  box-shadow: 0px 0px 20vw 100vw var(--modal-shadow);
+  box-shadow: 0px 0px 20vw 100vw var(--modal-shadow); /* Overlay escuro que cobre o jogo */
 
   top: var(--modal-top);
   left: calc((100vw - var(--modal-width)) / 2);
@@ -201,24 +217,26 @@
   z-index: 30;
 }
 
-p{
+p {
   font-size: var(--font-size-p);
 }
 
-.game-over{
+.game-over {
   font-size: var(--font-size-game-over);
 }
 
-.pontuacao{
+.pontuacao {
   font-size: var(--font-size-score);
   color: var(--score-color);
 }
 
-#reset{
+/* Botão de Reset/Jogar Novamente */
+#reset {
   color: var(--white);
   cursor: pointer;
   font-size: var(--font-size-button);
   padding: 15px 40px;
   border-radius: 15px;
   background-color: var(--button-bg);
+  border: none;
 }
