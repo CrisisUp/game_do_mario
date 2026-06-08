@@ -9,12 +9,19 @@
   </head>
   <body>
     <div class="game-board">
+      <div class="score-container">
+        Score: <span class="real-time-score">0</span>
+      </div>
+
       <img src="./assets/imgs/clouds.png" alt="" class="cloud">
-
       <img src="./assets/imgs/mario.gif" class="mario">
-
       <img src="./assets/imgs/pipe.png" class="pipe" alt="">
 
+      <div class="start-screen">
+        <h1>MARIO RUN</h1>
+        <p>Pressione qualquer tecla ou clique para começar</p>
+        <button id="start-button">Começar</button>
+      </div>
     </div>
     
     <div class="score-board">
@@ -25,7 +32,7 @@
         <h1 class="pontuacao">0</h1>
       </div>
 
-      <button id="reset">Jogar</button>
+      <button id="reset">Jogar Novamente</button>
     </div>
 
 

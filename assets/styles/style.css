@@ -38,7 +38,7 @@
 
   /* Animation times */
   --jump-time: 500ms;
-  --pipe-time: 2s;
+  --pipe-time: 1.5s; /* Um pouco mais rápido */
   --cloud-time: 10s;
 }
 
@@ -59,6 +59,15 @@
   border-bottom: var(--ground-border-width) solid var(--ground-color);
 }
 
+.score-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 30px;
+  color: #333;
+  z-index: 10;
+}
+
 .mario{
   bottom: 0;
   width: var(--mario-width);
@@ -66,7 +75,7 @@
 }
 
 .mario.jump{
-  animation: jump var(--jump-time) infinite ease-out;
+  animation: jump var(--jump-time) ease-out; /* Removido infinite */
 }
 
 .pipe{
@@ -74,6 +83,9 @@
   width: var(--pipe-width);
   right: calc(var(--pipe-width) * -1);
   position: absolute;
+}
+
+.game-board.playing .pipe {
   animation: pipe-animation var(--pipe-time) infinite linear;
 }
 
@@ -85,9 +97,49 @@
   animation: nuvens var(--cloud-time) infinite linear;
 }
 
+.start-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  z-index: 20;
+}
+
+.start-screen h1 {
+  font-size: 80px;
+  margin-bottom: 10px;
+}
+
+.start-screen p {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+#start-button {
+  padding: 15px 40px;
+  font-size: 30px;
+  background-color: var(--button-bg);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+#start-button:hover {
+  transform: scale(1.1);
+}
+
 @keyframes pipe-animation{
   from{
-    right: calc(var(--cloud-width) * -1);
+    right: calc(var(--pipe-width) * -1);
   }
 
   to{
@@ -143,10 +195,10 @@
   position: fixed;
 
   gap: var(--modal-gap);
-  /* display: flex; */
   text-align: center;
   align-items: center;
   flex-direction: column;
+  z-index: 30;
 }
 
 p{
